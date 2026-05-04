@@ -1,0 +1,990 @@
+<!DOCTYPE html>
+<html lang="fr" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mon Carnet de Recettes</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@300;400;500&family=Lora:ital,wght@0,400;1,400&display=swap" rel="stylesheet">
+<style>
+/* ══════════════ TOKENS ══════════════ */
+:root {
+  --sage:#7a9e7e; --sage-dark:#4f7355; --sage-light:#b5cfb7; --sage-pale:#e8f0e9;
+  --cream:#faf8f3; --cream-dark:#f0ece2;
+  --text:#2d3a2e; --text-mid:#5a6e5c; --text-soft:#8fa491;
+  --accent:#c97d4e; --accent-light:#e8a97a;
+  --white:#ffffff; --border:#d4e0d5;
+  --card-bg:#ffffff; --header-bg:#ffffff; --input-bg:#faf8f3;
+  --shadow-sm:0 2px 8px rgba(74,100,77,.10);
+  --shadow-md:0 8px 32px rgba(74,100,77,.14);
+  --shadow-lg:0 20px 60px rgba(40,60,42,.18);
+  --r:12px;
+}
+[data-theme="dark"] {
+  --sage:#8ab58e; --sage-dark:#6a9a6e; --sage-light:#4a6e4e; --sage-pale:#1e2e1f;
+  --cream:#141a15; --cream-dark:#1a221b;
+  --text:#e2ece3; --text-mid:#a8bfaa; --text-soft:#6a826c;
+  --accent:#d4905e; --accent-light:#e8a97a;
+  --white:#1e281f; --border:#2d3e2e;
+  --card-bg:#1a221b; --header-bg:#111811; --input-bg:#1a221b;
+  --shadow-sm:0 2px 8px rgba(0,0,0,.30);
+  --shadow-md:0 8px 32px rgba(0,0,0,.40);
+  --shadow-lg:0 20px 60px rgba(0,0,0,.55);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--text);min-height:100vh;transition:background .3s,color .3s;}
+body::before{content:'';position:fixed;inset:0;z-index:0;background-image:radial-gradient(circle at 15% 10%,rgba(122,158,126,.10) 0%,transparent 45%),radial-gradient(circle at 85% 90%,rgba(122,158,126,.07) 0%,transparent 40%);pointer-events:none;}
+
+/* ══════════════ HEADER ══════════════ */
+header{position:sticky;top:0;z-index:50;background:var(--header-bg);border-bottom:1px solid var(--border);padding:0 24px;display:flex;align-items:center;gap:12px;height:64px;box-shadow:var(--shadow-sm);transition:background .3s,border-color .3s;}
+.logo{display:flex;align-items:center;gap:8px;flex-shrink:0;}
+.logo-icon{width:34px;height:34px;background:linear-gradient(135deg,var(--sage),var(--sage-dark));border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0;}
+.logo-text{font-family:'Playfair Display',serif;font-size:1rem;color:var(--text);line-height:1.1;white-space:nowrap;}
+.logo-text span{font-weight:400;font-style:italic;color:var(--text-mid);}
+/* hide text on mobile, show icon only */
+@media(max-width:600px){.logo-text{display:none;}}
+
+.header-search{flex:1;max-width:320px;position:relative;margin-left:auto;}
+.header-search input{width:100%;padding:8px 14px 8px 36px;border:1.5px solid var(--border);border-radius:50px;background:var(--sage-pale);font-family:'DM Sans',sans-serif;font-size:.85rem;color:var(--text);outline:none;transition:border-color .2s,box-shadow .2s,background .3s;}
+.header-search input:focus{border-color:var(--sage);box-shadow:0 0 0 3px rgba(122,158,126,.15);}
+.header-search input::placeholder{color:var(--text-soft);}
+.s-ico{position:absolute;left:11px;top:50%;transform:translateY(-50%);color:var(--text-soft);font-size:.85rem;pointer-events:none;}
+.header-right{display:flex;gap:6px;align-items:center;flex-shrink:0;}
+
+/* hide label on mobile for icon-only buttons */
+.btn-label{display:inline;}
+@media(max-width:600px){.btn-label{display:none;}}
+
+/* ══════════════ BUTTONS ══════════════ */
+.btn{display:inline-flex;align-items:center;gap:5px;padding:7px 16px;border-radius:50px;font-family:'DM Sans',sans-serif;font-size:.84rem;font-weight:500;cursor:pointer;border:none;transition:all .18s;white-space:nowrap;}
+.btn-primary{background:var(--sage-dark);color:#fff;}
+.btn-primary:hover{filter:brightness(1.1);transform:translateY(-1px);box-shadow:var(--shadow-sm);}
+.btn-ghost{background:transparent;color:var(--text-mid);border:1.5px solid var(--border);}
+.btn-ghost:hover{border-color:var(--sage);color:var(--sage-dark);background:var(--sage-pale);}
+.btn-danger{background:#fdeaea;color:#b54040;border:1.5px solid #f5c8c8;}
+.btn-danger:hover{background:#f5c8c8;}
+.btn-warn{background:#fff8e6;color:#a06010;border:1.5px solid #f0d890;}
+.btn-warn:hover{background:#f0e8c0;}
+.btn-sm{padding:5px 12px;font-size:.79rem;}
+.btn-icon{padding:7px;width:36px;height:36px;justify-content:center;font-size:1rem;}
+
+.theme-toggle{width:36px;height:36px;border-radius:50%;border:1.5px solid var(--border);background:var(--sage-pale);color:var(--text-mid);font-size:.95rem;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s;flex-shrink:0;}
+.theme-toggle:hover{border-color:var(--sage);color:var(--sage-dark);}
+
+.sync-indicator{display:flex;align-items:center;gap:5px;font-size:.78rem;color:var(--text-soft);padding:5px 11px;border-radius:50px;border:1.5px solid var(--border);background:var(--sage-pale);cursor:pointer;transition:all .2s;white-space:nowrap;}
+.sync-indicator:hover{border-color:var(--sage);color:var(--sage-dark);}
+.sync-dot{width:6px;height:6px;border-radius:50%;background:var(--text-soft);flex-shrink:0;transition:background .3s;}
+.sync-dot.connected{background:#5aab6a;}
+.sync-dot.syncing{background:var(--accent);animation:pulse 1s infinite;}
+.sync-dot.error{background:#c45a5a;}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+@media(max-width:600px){.sync-label{display:none;}}
+
+/* ══════════════ MAIN ══════════════ */
+.app{position:relative;z-index:1;max-width:1160px;margin:0 auto;padding:24px 24px 80px;}
+
+/* ══════════════ FILTERS ══════════════ */
+.filters-bar{display:flex;align-items:center;gap:6px;margin-bottom:22px;flex-wrap:wrap;}
+.filter-label{font-size:.73rem;font-weight:500;color:var(--text-soft);text-transform:uppercase;letter-spacing:.07em;flex-shrink:0;}
+.filter-chip{padding:5px 13px;border-radius:50px;border:1.5px solid var(--border);background:var(--card-bg);font-family:'DM Sans',sans-serif;font-size:.8rem;color:var(--text-mid);cursor:pointer;transition:all .15s;white-space:nowrap;}
+.filter-chip:hover{border-color:var(--sage-light);color:var(--sage-dark);}
+.filter-chip.active{background:var(--sage-dark);color:#fff;border-color:var(--sage-dark);}
+.count-pill{margin-left:auto;font-size:.76rem;color:var(--text-soft);background:var(--sage-pale);padding:3px 11px;border-radius:50px;flex-shrink:0;}
+
+/* scroll filters on mobile */
+.filters-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;display:flex;gap:6px;padding-bottom:4px;scrollbar-width:none;}
+.filters-scroll::-webkit-scrollbar{display:none;}
+
+/* ══════════════ GRID ══════════════ */
+.recipe-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px;}
+@media(max-width:600px){.recipe-grid{grid-template-columns:1fr;}}
+
+.recipe-card{background:var(--card-bg);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;cursor:pointer;display:flex;flex-direction:column;transition:transform .18s,box-shadow .18s,background .3s,border-color .3s;animation:pop .22s ease both;}
+.recipe-card:hover{transform:translateY(-3px);box-shadow:var(--shadow-md);}
+@keyframes pop{from{opacity:0;transform:scale(.97) translateY(4px)}to{opacity:1;transform:scale(1)}}
+.card-bar{height:5px;}
+.bar-entree{background:linear-gradient(90deg,#6b9e8b,#a8d0c0);}
+.bar-plat{background:linear-gradient(90deg,#7a9e7e,#b5cfb7);}
+.bar-dessert{background:linear-gradient(90deg,#c97d4e,#e8a97a);}
+.bar-boulangerie{background:linear-gradient(90deg,#b89060,#d8b88a);}
+.bar-aperitif{background:linear-gradient(90deg,#9e7ab5,#c8a8d8);}
+.bar-cocktail{background:linear-gradient(90deg,#4a8faa,#7ac0d8);}
+.bar-autre{background:linear-gradient(90deg,#8f8faa,#bdbdd8);}
+.card-body{padding:14px 16px 10px;flex:1;}
+.cat-badge{display:inline-block;padding:2px 8px;border-radius:50px;font-size:.69rem;font-weight:600;text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px;}
+.badge-entree{background:#e6f4f0;color:#3a7a68;}
+.badge-plat{background:var(--sage-pale);color:var(--sage-dark);}
+.badge-dessert{background:#fdf0e8;color:#a05a28;}
+.badge-boulangerie{background:#f5ede0;color:#7a5020;}
+.badge-aperitif{background:#f5f0fb;color:#6a4a8a;}
+.badge-cocktail{background:#e8f4f8;color:#2a6a88;}
+.badge-autre{background:#f0f0f8;color:#5a5a88;}
+[data-theme="dark"] .badge-entree{background:#1a3028;color:#6ac0a8;}
+[data-theme="dark"] .badge-plat{background:var(--sage-pale);color:var(--sage);}
+[data-theme="dark"] .badge-dessert{background:#2a1e12;color:#d4905e;}
+[data-theme="dark"] .badge-boulangerie{background:#2a2010;color:#c8a070;}
+[data-theme="dark"] .badge-aperitif{background:#201828;color:#b898d8;}
+[data-theme="dark"] .badge-cocktail{background:#102028;color:#70b8d8;}
+[data-theme="dark"] .badge-autre{background:#1e1e2a;color:#9898c8;}
+.card-title{font-family:'Playfair Display',serif;font-size:1.08rem;font-weight:700;color:var(--text);margin-bottom:4px;line-height:1.3;}
+.card-meta{font-size:.76rem;color:var(--text-soft);margin-bottom:8px;display:flex;gap:8px;}
+.card-ing{font-size:.78rem;color:var(--text-mid);line-height:1.55;border-top:1px solid var(--border);padding-top:8px;}
+.card-footer{padding:8px 16px 12px;display:flex;gap:5px;border-top:1px solid var(--border);background:var(--sage-pale);transition:background .3s;}
+.empty-state{grid-column:1/-1;text-align:center;padding:70px 20px;}
+.empty-icon{font-size:2.8rem;margin-bottom:10px;opacity:.35;}
+.empty-state p{font-family:'Lora',serif;font-style:italic;color:var(--text-soft);font-size:.93rem;line-height:1.6;}
+
+/* ══════════════ BACKDROP / PANEL ══════════════ */
+.backdrop{display:none;position:fixed;inset:0;z-index:200;background:rgba(10,18,11,.62);backdrop-filter:blur(4px);align-items:center;justify-content:center;padding:16px;}
+.backdrop.open{display:flex;}
+.panel{background:var(--card-bg);border-radius:18px;box-shadow:var(--shadow-lg);width:100%;overflow:hidden;display:flex;flex-direction:column;animation:slideUp .22s cubic-bezier(.34,1.56,.64,1);max-height:92vh;border:1px solid var(--border);transition:background .3s,border-color .3s;}
+@keyframes slideUp{from{opacity:0;transform:translateY(28px) scale(.97)}to{opacity:1;transform:translateY(0) scale(1)}}
+.panel-form{max-width:660px;}
+.panel-view{max-width:700px;}
+.panel-gist{max-width:560px;}
+.panel-io{max-width:500px;}
+.panel-diff{max-width:820px;}
+.panel-head{padding:20px 24px 16px;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;gap:10px;flex-shrink:0;}
+.p-icon{width:38px;height:38px;border-radius:9px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:1.05rem;}
+.p-icon-green{background:var(--sage-pale);}
+.p-icon-warm{background:#fdf0e8;}
+.p-icon-github{background:#f0f0f8;}
+.p-icon-warn{background:#fff8e6;}
+[data-theme="dark"] .p-icon-github{background:#1e1e2a;}
+[data-theme="dark"] .p-icon-warn{background:#2a2010;}
+.p-head-text{flex:1;}
+.p-head-text h2{font-family:'Playfair Display',serif;font-size:1.25rem;color:var(--text);margin-bottom:1px;}
+.p-head-text p{font-size:.8rem;color:var(--text-soft);}
+.p-close{width:28px;height:28px;border-radius:50%;border:none;background:var(--sage-pale);color:var(--text-mid);font-size:.9rem;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:background .15s;}
+.p-close:hover{background:var(--border);}
+.panel-body{padding:20px 24px;overflow-y:auto;flex:1;}
+.panel-foot{padding:12px 24px;border-top:1px solid var(--border);display:flex;gap:7px;justify-content:flex-end;background:var(--cream);flex-shrink:0;flex-wrap:wrap;transition:background .3s;}
+
+/* ══════════════ FORM ══════════════ */
+.f-section{margin-bottom:18px;}
+.f-section-title{font-size:.7rem;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--sage-dark);margin-bottom:9px;display:flex;align-items:center;gap:6px;}
+.f-section-title::after{content:'';flex:1;height:1px;background:var(--border);}
+.f-row{display:grid;grid-template-columns:1fr 1fr;gap:11px;}
+@media(max-width:480px){.f-row{grid-template-columns:1fr;}}
+.f-group{display:flex;flex-direction:column;gap:4px;}
+.f-group label{font-size:.76rem;font-weight:500;color:var(--text-mid);}
+.f-group input,.f-group select,.f-group textarea{width:100%;padding:8px 11px;border:1.5px solid var(--border);border-radius:8px;background:var(--input-bg);font-family:'DM Sans',sans-serif;font-size:.87rem;color:var(--text);outline:none;transition:border-color .18s,box-shadow .18s,background .3s;resize:vertical;}
+.f-group input:focus,.f-group select:focus,.f-group textarea:focus{border-color:var(--sage);box-shadow:0 0 0 3px rgba(122,158,126,.12);background:var(--card-bg);}
+.f-hint{font-size:.7rem;color:var(--text-soft);}
+
+/* ══════════════ VIEW ══════════════ */
+.serv-ctrl{display:inline-flex;align-items:center;gap:7px;background:var(--sage-pale);border:1px solid var(--border);border-radius:50px;padding:5px 13px;margin-bottom:16px;transition:background .3s;}
+.serv-ctrl label{font-size:.78rem;color:var(--text-mid);font-weight:500;}
+.serv-btn{width:24px;height:24px;border-radius:50%;border:none;background:var(--card-bg);color:var(--sage-dark);font-size:.9rem;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:var(--shadow-sm);transition:background .15s;line-height:1;}
+.serv-btn:hover{background:var(--cream-dark);}
+.serv-val{font-size:.92rem;font-weight:700;color:var(--sage-dark);min-width:20px;text-align:center;}
+.serv-lbl{font-size:.78rem;color:var(--text-mid);}
+.v-section{margin-bottom:18px;}
+.v-section h3{font-size:.7rem;font-weight:600;text-transform:uppercase;letter-spacing:.09em;color:var(--sage-dark);margin-bottom:9px;padding-bottom:5px;border-bottom:1.5px solid var(--sage-pale);}
+.ing-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(185px,1fr));gap:5px;}
+.ing-item{display:flex;align-items:center;gap:7px;padding:6px 10px;background:var(--sage-pale);border-radius:7px;font-size:.84rem;color:var(--text);transition:background .15s;}
+.ing-item:hover{background:var(--cream-dark);}
+.ing-dot{width:5px;height:5px;border-radius:50%;background:var(--sage);flex-shrink:0;}
+.steps-list{list-style:none;display:flex;flex-direction:column;gap:8px;}
+.step-item{display:flex;gap:11px;padding:10px 13px;background:var(--cream);border-radius:9px;border-left:3px solid var(--sage-light);font-size:.87rem;line-height:1.6;color:var(--text);transition:border-color .18s,background .3s;}
+.step-item:hover{border-left-color:var(--sage);}
+.step-num{font-family:'Playfair Display',serif;font-size:1rem;font-weight:700;color:var(--sage-light);flex-shrink:0;min-width:17px;line-height:1.6;}
+.notes-box{background:#fffbf5;border:1px solid #f0d9c0;border-left:3px solid var(--accent-light);border-radius:9px;padding:11px 13px;font-family:'Lora',serif;font-style:italic;font-size:.87rem;color:var(--text-mid);line-height:1.6;transition:background .3s;}
+[data-theme="dark"] .notes-box{background:#231a10;border-color:#3a2510;}
+
+/* ══════════════ DIFF PANEL ══════════════ */
+.diff-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px;}
+@media(max-width:560px){.diff-grid{grid-template-columns:1fr;}}
+.diff-col{border:1.5px solid var(--border);border-radius:10px;overflow:hidden;}
+.diff-col-head{padding:10px 14px;display:flex;align-items:center;justify-content:space-between;gap:8px;}
+.diff-col-head.local{background:#e8f0e9;}
+.diff-col-head.gist{background:#f0f0f8;}
+[data-theme="dark"] .diff-col-head.local{background:#1e2e1f;}
+[data-theme="dark"] .diff-col-head.gist{background:#1e1e2a;}
+.diff-col-head h3{font-size:.82rem;font-weight:600;color:var(--text);}
+.diff-col-head p{font-size:.72rem;color:var(--text-soft);}
+.diff-list{max-height:280px;overflow-y:auto;padding:8px;}
+.diff-item{padding:7px 10px;border-radius:7px;margin-bottom:5px;font-size:.82rem;color:var(--text);display:flex;align-items:center;gap:7px;}
+.diff-item.only-local{background:#e8f5ec;}
+.diff-item.only-gist{background:#f0f0fb;}
+.diff-item.both{background:var(--sage-pale);}
+.diff-item.conflict{background:#fff8e6;border:1px solid #f0d890;}
+[data-theme="dark"] .diff-item.only-local{background:#102810;}
+[data-theme="dark"] .diff-item.only-gist{background:#181828;}
+[data-theme="dark"] .diff-item.both{background:var(--sage-pale);}
+[data-theme="dark"] .diff-item.conflict{background:#2a2010;border-color:#5a4010;}
+.diff-tag{font-size:.65rem;font-weight:700;padding:1px 6px;border-radius:4px;flex-shrink:0;}
+.tag-local{background:#5aab6a;color:#fff;}
+.tag-gist{background:#7070c8;color:#fff;}
+.tag-both{background:var(--sage);color:#fff;}
+.tag-conflict{background:#c89030;color:#fff;}
+.diff-summary{padding:12px 14px;background:var(--sage-pale);border-radius:9px;font-size:.82rem;color:var(--text-mid);line-height:1.6;margin-bottom:14px;transition:background .3s;}
+
+/* ══════════════ GIST PANEL ══════════════ */
+.gist-steps{display:flex;flex-direction:column;gap:12px;margin-bottom:18px;}
+.gist-step{display:flex;gap:11px;padding:13px;background:var(--sage-pale);border-radius:10px;border:1px solid var(--border);transition:background .3s;}
+.gist-step-num{width:24px;height:24px;border-radius:50%;background:var(--sage-dark);color:#fff;display:flex;align-items:center;justify-content:center;font-size:.76rem;font-weight:700;flex-shrink:0;}
+.gist-step-body strong{display:block;font-size:.87rem;color:var(--text);margin-bottom:3px;}
+.gist-step-body p{font-size:.78rem;color:var(--text-soft);line-height:1.5;}
+.gist-step-body a{color:var(--sage-dark);}
+.gist-token-row{display:flex;gap:7px;margin-top:6px;}
+.gist-token-row input{flex:1;padding:7px 11px;border:1.5px solid var(--border);border-radius:8px;background:var(--input-bg);font-family:'DM Sans',sans-serif;font-size:.83rem;color:var(--text);outline:none;transition:border-color .2s;}
+.gist-token-row input:focus{border-color:var(--sage);}
+.gist-status{margin-top:12px;padding:9px 13px;border-radius:9px;font-size:.81rem;display:none;}
+.gist-status.ok{background:#e6f4f0;color:#2a6a54;border:1px solid #b0ddd0;display:block;}
+.gist-status.err{background:#fdeaea;color:#8b2020;border:1px solid #f5c8c8;display:block;}
+[data-theme="dark"] .gist-status.ok{background:#0e2820;color:#7ac8a8;border-color:#1a4030;}
+[data-theme="dark"] .gist-status.err{background:#280e0e;color:#e88888;border-color:#3a1818;}
+
+/* ══════════════ IO / SHARE ══════════════ */
+.io-section{padding:16px;border:1.5px dashed var(--border);border-radius:11px;margin-bottom:13px;transition:border-color .2s,background .2s;}
+.io-section:hover{border-color:var(--sage-light);background:var(--sage-pale);}
+.io-section h3{font-size:.88rem;font-weight:600;color:var(--text);margin-bottom:3px;display:flex;align-items:center;gap:7px;}
+.io-section p{font-size:.78rem;color:var(--text-soft);margin-bottom:11px;line-height:1.5;}
+.file-wrap{position:relative;display:inline-block;}
+.file-wrap input[type="file"]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;}
+
+/* Reddit share row */
+.reddit-row{display:flex;gap:6px;flex-wrap:wrap;}
+.reddit-chip{display:inline-flex;align-items:center;gap:5px;padding:5px 12px;border-radius:50px;background:#ff4500;color:#fff;font-size:.78rem;font-weight:500;cursor:pointer;border:none;font-family:'DM Sans',sans-serif;transition:filter .18s;}
+.reddit-chip:hover{filter:brightness(1.15);}
+
+/* ══════════════ TOAST ══════════════ */
+.toast{position:fixed;bottom:26px;left:50%;transform:translateX(-50%) translateY(70px);background:var(--text);color:var(--cream);padding:10px 20px;border-radius:50px;font-size:.84rem;font-weight:500;z-index:9999;transition:transform .28s cubic-bezier(.34,1.56,.64,1),opacity .28s;opacity:0;pointer-events:none;white-space:nowrap;}
+.toast.show{transform:translateX(-50%) translateY(0);opacity:1;}
+.toast.ok{background:var(--sage-dark);color:#fff;}
+.toast.fail{background:#b54040;color:#fff;}
+
+@media(max-width:480px){
+  .panel-body,.panel-head,.panel-foot{padding-left:14px;padding-right:14px;}
+  .panel-head{padding-top:16px;padding-bottom:12px;}
+}
+</style>
+</head>
+<body>
+
+<!-- ═══ HEADER ═══ -->
+<header>
+  <div class="logo">
+    <div class="logo-icon">🌿</div>
+    <div class="logo-text">Mon Carnet<br><span>de Recettes</span></div>
+  </div>
+  <div class="header-search">
+    <span class="s-ico">🔍</span>
+    <input type="text" id="searchInput" placeholder="Recette ou ingrédient…" oninput="renderGrid()">
+  </div>
+  <div class="header-right">
+    <div class="sync-indicator" id="syncIndicator" onclick="openGist()" title="Synchronisation GitHub Gist">
+      <div class="sync-dot" id="syncDot"></div>
+      <span class="sync-label" id="syncLabel">Sync Gist</span>
+    </div>
+    <button class="btn btn-ghost btn-sm" onclick="openIO()">📦 <span class="btn-label">Import/Export</span></button>
+    <button class="btn btn-primary btn-sm" onclick="openForm()">＋ <span class="btn-label">Recette</span></button>
+    <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()" title="Mode sombre">🌙</button>
+  </div>
+</header>
+
+<!-- ═══ MAIN ═══ -->
+<main class="app">
+  <div class="filters-bar">
+    <span class="filter-label">Filtre</span>
+    <div class="filters-scroll">
+      <button class="filter-chip active" onclick="setCat(this,'all')">Toutes</button>
+      <button class="filter-chip"        onclick="setCat(this,'entree')">🥗 Entrées</button>
+      <button class="filter-chip"        onclick="setCat(this,'plat')">🍽 Plats</button>
+      <button class="filter-chip"        onclick="setCat(this,'dessert')">🍰 Desserts</button>
+      <button class="filter-chip"        onclick="setCat(this,'boulangerie')">🥐 Boulangerie</button>
+      <button class="filter-chip"        onclick="setCat(this,'aperitif')">🫒 Apéritifs</button>
+      <button class="filter-chip"        onclick="setCat(this,'cocktail')">🍹 Cocktails</button>
+      <button class="filter-chip"        onclick="setCat(this,'autre')">✨ Autres</button>
+    </div>
+    <span class="count-pill" id="countPill"></span>
+  </div>
+  <div class="recipe-grid" id="recipeGrid"></div>
+</main>
+
+<!-- ═══ FORM ═══ -->
+<div class="backdrop" id="formBackdrop">
+  <div class="panel panel-form">
+    <div class="panel-head">
+      <div class="p-icon p-icon-green">✏️</div>
+      <div class="p-head-text"><h2 id="formTitle">Nouvelle recette</h2><p>Remplissez les champs ci-dessous</p></div>
+      <button class="p-close" onclick="closeAll()">✕</button>
+    </div>
+    <div class="panel-body">
+      <input type="hidden" id="editIdx">
+      <div class="f-section">
+        <div class="f-section-title">Informations générales</div>
+        <div class="f-row" style="margin-bottom:11px">
+          <div class="f-group"><label>Titre *</label><input type="text" id="fTitle" placeholder="Tarte tatin, brioche…"></div>
+          <div class="f-group"><label>Catégorie</label>
+            <select id="fCat">
+              <option value="entree">🥗 Entrée</option>
+              <option value="plat">🍽 Plat</option>
+              <option value="dessert" selected>🍰 Dessert</option>
+              <option value="boulangerie">🥐 Boulangerie</option>
+              <option value="aperitif">🫒 Apéritif</option>
+              <option value="cocktail">🍹 Cocktail</option>
+              <option value="autre">✨ Autre</option>
+            </select>
+          </div>
+        </div>
+        <div class="f-row">
+          <div class="f-group"><label>Portions *</label><input type="number" id="fServings" min="1" value="4"><span class="f-hint">Base pour l'adaptation des quantités</span></div>
+          <div class="f-group"><label>Durée</label><input type="text" id="fTime" placeholder="45 min"></div>
+        </div>
+      </div>
+      <div class="f-section">
+        <div class="f-section-title">Ingrédients</div>
+        <div class="f-group"><label>Un ingrédient par ligne *</label><textarea id="fIngredients" rows="6" placeholder="200g farine&#10;3 oeufs&#10;150g beurre"></textarea><span class="f-hint">Conseil : quantité + unité + nom (ex: 200g farine) → les quantités s'adaptent selon les portions</span></div>
+      </div>
+      <div class="f-section">
+        <div class="f-section-title">Préparation</div>
+        <div class="f-group"><label>Une étape par ligne *</label><textarea id="fSteps" rows="6" placeholder="Préchauffer le four à 180°C&#10;Mélanger la farine et le beurre"></textarea></div>
+      </div>
+      <div class="f-section">
+        <div class="f-section-title">Notes &amp; astuces</div>
+        <div class="f-group"><textarea id="fNotes" rows="3" placeholder="Variantes, conseils de présentation…"></textarea></div>
+      </div>
+    </div>
+    <div class="panel-foot">
+      <button class="btn btn-ghost btn-sm" onclick="closeAll()">Annuler</button>
+      <button class="btn btn-primary btn-sm" onclick="saveRecipe()">💾 Sauvegarder</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ VIEW ═══ -->
+<div class="backdrop" id="viewBackdrop">
+  <div class="panel panel-view">
+    <div class="panel-head">
+      <div class="p-icon p-icon-green">🌿</div>
+      <div class="p-head-text"><h2 id="viewTitle">Recette</h2><p id="viewMeta"></p></div>
+      <button class="p-close" onclick="closeAll()">✕</button>
+    </div>
+    <div class="panel-body" id="viewBody"></div>
+    <div class="panel-foot">
+      <button class="btn btn-ghost btn-sm" id="btnEditView">✏️ Modifier</button>
+      <button class="btn btn-ghost btn-sm" id="btnExportOne">⬇️ .md</button>
+      <button class="btn btn-ghost btn-sm" id="btnShareReddit">🟠 Partager</button>
+      <button class="btn btn-ghost btn-sm" onclick="closeAll()">Fermer</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ DIFF / CONFLICT ═══ -->
+<div class="backdrop" id="diffBackdrop">
+  <div class="panel panel-diff">
+    <div class="panel-head">
+      <div class="p-icon p-icon-warn">⚖️</div>
+      <div class="p-head-text"><h2>Conflit de synchronisation</h2><p>Le Gist et votre carnet local contiennent des différences</p></div>
+      <button class="p-close" onclick="closeAll()">✕</button>
+    </div>
+    <div class="panel-body">
+      <div class="diff-summary" id="diffSummary"></div>
+      <div class="diff-grid">
+        <div class="diff-col">
+          <div class="diff-col-head local"><div><h3>📱 Carnet local</h3><p id="diffLocalCount"></p></div></div>
+          <div class="diff-list" id="diffLocalList"></div>
+        </div>
+        <div class="diff-col">
+          <div class="diff-col-head gist"><div><h3>☁️ Gist en ligne</h3><p id="diffGistCount"></p></div></div>
+          <div class="diff-list" id="diffGistList"></div>
+        </div>
+      </div>
+    </div>
+    <div class="panel-foot">
+      <button class="btn btn-ghost btn-sm" onclick="closeAll()">Annuler</button>
+      <button class="btn btn-warn btn-sm" onclick="resolveDiff('merge')">🔀 Tout fusionner</button>
+      <button class="btn btn-ghost btn-sm" onclick="resolveDiff('gist')">☁️ Garder le Gist</button>
+      <button class="btn btn-primary btn-sm" onclick="resolveDiff('local')">📱 Garder le local</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ GIST ═══ -->
+<div class="backdrop" id="gistBackdrop">
+  <div class="panel panel-gist">
+    <div class="panel-head">
+      <div class="p-icon p-icon-github">🐙</div>
+      <div class="p-head-text"><h2>Sync GitHub Gist</h2><p>Sauvegarde cloud gratuite, multi-appareil</p></div>
+      <button class="p-close" onclick="closeAll()">✕</button>
+    </div>
+    <div class="panel-body">
+      <div class="gist-steps">
+        <div class="gist-step">
+          <div class="gist-step-num">1</div>
+          <div class="gist-step-body">
+            <strong>Créer un token GitHub</strong>
+            <p>Va sur <a href="https://github.com/settings/tokens/new" target="_blank">github.com → Settings → Tokens</a>, coche uniquement <code>gist</code>, génère et copie le token.</p>
+          </div>
+        </div>
+        <div class="gist-step">
+          <div class="gist-step-num">2</div>
+          <div class="gist-step-body">
+            <strong>Colle ton token ici</strong>
+            <div class="gist-token-row">
+              <input type="password" id="gistTokenInput" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx">
+              <button class="btn btn-primary btn-sm" onclick="connectGist()">Connecter</button>
+            </div>
+          </div>
+        </div>
+        <div class="gist-step">
+          <div class="gist-step-num">3</div>
+          <div class="gist-step-body">
+            <strong>Synchronisation automatique</strong>
+            <p>Le carnet se sync après chaque sauvegarde. Sur un autre appareil, répète ces étapes avec le même token.</p>
+          </div>
+        </div>
+      </div>
+      <div class="gist-status" id="gistStatus"></div>
+      <div id="gistConnectedSection" style="display:none;margin-top:14px;">
+        <div style="display:flex;gap:7px;flex-wrap:wrap;">
+          <button class="btn btn-primary btn-sm" onclick="pushToGist()">⬆️ Envoyer vers Gist</button>
+          <button class="btn btn-ghost btn-sm" onclick="pullAndDiff()">⬇️ Récupérer (avec diff)</button>
+          <button class="btn btn-danger btn-sm" onclick="disconnectGist()">Déconnecter</button>
+        </div>
+      </div>
+    </div>
+    <div class="panel-foot"><button class="btn btn-ghost btn-sm" onclick="closeAll()">Fermer</button></div>
+  </div>
+</div>
+
+<!-- ═══ IO ═══ -->
+<div class="backdrop" id="ioBackdrop">
+  <div class="panel panel-io">
+    <div class="panel-head">
+      <div class="p-icon p-icon-warm">📦</div>
+      <div class="p-head-text"><h2>Import / Export</h2><p>Fichiers Markdown</p></div>
+      <button class="p-close" onclick="closeAll()">✕</button>
+    </div>
+    <div class="panel-body">
+      <div class="io-section">
+        <h3>⬇️ Exporter le carnet complet</h3>
+        <p>Un fichier <code>.md</code> avec toutes vos recettes — lisible partout et réimportable ici.</p>
+        <button class="btn btn-primary btn-sm" onclick="exportAll()">Télécharger mon-carnet.md</button>
+      </div>
+      <div class="io-section">
+        <h3>⬆️ Importer des recettes</h3>
+        <p>Importez un ou plusieurs <code>.md</code> exportés depuis ce carnet. Ajout sans écrasement.</p>
+        <div class="file-wrap">
+          <button class="btn btn-ghost btn-sm">📂 Choisir des fichiers .md</button>
+          <input type="file" accept=".md" multiple onchange="importMD(event)">
+        </div>
+      </div>
+      <div class="io-section">
+        <h3>🟠 Partager sur Reddit</h3>
+        <p>Ouvrez une recette, puis cliquez sur <em>Partager</em> dans le panneau de visualisation. Quelques communautés suggérées :</p>
+        <div class="reddit-row">
+          <button class="reddit-chip" onclick="openReddit('recipes','')">r/recipes</button>
+          <button class="reddit-chip" onclick="openReddit('Cooking','')">r/Cooking</button>
+          <button class="reddit-chip" onclick="openReddit('breadit','')">r/breadit</button>
+          <button class="reddit-chip" onclick="openReddit('cocktails','')">r/cocktails</button>
+          <button class="reddit-chip" onclick="openReddit('frenchcooking','')">r/frenchcooking</button>
+        </div>
+      </div>
+      <div class="io-section">
+        <h3>🗑 Réinitialiser</h3>
+        <p>Vide tout le carnet. Pensez à exporter d'abord !</p>
+        <button class="btn btn-danger btn-sm" onclick="resetAll()">Vider le carnet</button>
+      </div>
+    </div>
+    <div class="panel-foot"><button class="btn btn-ghost btn-sm" onclick="closeAll()">Fermer</button></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ─────────────────────────────────────
+   CONSTANTS
+───────────────────────────────────── */
+const SK       = 'carnet_v4';
+const SK_TOKEN = 'carnet_gist_token';
+const SK_GIST  = 'carnet_gist_id';
+const SK_THEME = 'carnet_theme';
+const GIST_FILE= 'mon-carnet-recettes.json';
+
+const EMOJIS = {entree:'🥗',plat:'🍽',dessert:'🍰',boulangerie:'🥐',aperitif:'🫒',cocktail:'🍹',autre:'✨'};
+const LABELS = {entree:'Entrée',plat:'Plat',dessert:'Dessert',boulangerie:'Boulangerie',aperitif:'Apéritif',cocktail:'Cocktail',autre:'Autre'};
+
+// Reddit subreddit suggestions per category
+const CAT_REDDIT = {
+  boulangerie:'breadit', cocktail:'cocktails', entree:'recipes',
+  plat:'recipes', dessert:'recipes', aperitif:'recipes', autre:'recipes'
+};
+
+let recipes   = [];
+let activeCat = 'all';
+let _diffPending = null; // {local, gist} for conflict resolution
+
+/* ─────────────────────────────────────
+   THEME
+───────────────────────────────────── */
+function initTheme(){
+  applyTheme(localStorage.getItem(SK_THEME)||'light');
+}
+function toggleTheme(){
+  applyTheme(document.documentElement.getAttribute('data-theme')==='dark'?'light':'dark');
+}
+function applyTheme(t){
+  document.documentElement.setAttribute('data-theme',t);
+  document.getElementById('themeToggle').textContent = t==='dark'?'☀️':'🌙';
+  localStorage.setItem(SK_THEME,t);
+}
+
+/* ─────────────────────────────────────
+   DATA
+───────────────────────────────────── */
+function load(){
+  try{recipes=JSON.parse(localStorage.getItem(SK))||defaults();}
+  catch{recipes=defaults();}
+}
+function persist(){try{localStorage.setItem(SK,JSON.stringify(recipes));}catch{}}
+
+function defaults(){return [{
+  title:'Cheesecake au Citron',cat:'dessert',servings:8,time:'1h + 4h repos',
+  ingredients:['200 g biscuits Digestive','80 g beurre fondu','600 g Philadelphia','150 g sucre',
+               '3 oeufs','150 ml crème épaisse','2 citrons (zeste + jus)','1 c.à.c vanille','2 c.à.s Maïzena'],
+  steps:['Préchauffer le four à 160°C. Beurrer un moule à charnière de 22 cm.',
+         'Mixer les biscuits, mélanger avec le beurre. Tasser au fond. Réfrigérer 15 min.',
+         'Fouetter le Philadelphia avec le sucre jusqu\'à obtenir un mélange lisse.',
+         'Incorporer les oeufs un à un, puis la crème, le zeste, le jus, la vanille et la Maïzena.',
+         'Verser sur la base. Cuire au bain-marie 55-65 min, centre légèrement tremblotant.',
+         'Éteindre le four, entrouvrir la porte, refroidir 1h. Réfrigérer au moins 4h.'],
+  notes:'Ingrédients à température ambiante. Bain-marie indispensable. Meilleur le lendemain !'
+}];}
+
+/* ─────────────────────────────────────
+   GRID
+───────────────────────────────────── */
+function renderGrid(){
+  const q=document.getElementById('searchInput').value.trim().toLowerCase();
+  const list=recipes.map((r,i)=>({r,i})).filter(({r})=>
+    (activeCat==='all'||r.cat===activeCat)&&
+    (!q||r.title.toLowerCase().includes(q)||r.ingredients.some(g=>g.toLowerCase().includes(q)))
+  );
+  document.getElementById('countPill').textContent=list.length?`${list.length} recette${list.length>1?'s':''}`:'';
+  const grid=document.getElementById('recipeGrid');
+  if(!list.length){
+    grid.innerHTML=`<div class="empty-state"><div class="empty-icon">🌿</div><p>Aucune recette trouvée…<br>Ajoutez-en une ou modifiez votre recherche.</p></div>`;
+    return;
+  }
+  grid.innerHTML=list.map(({r,i})=>`
+    <div class="recipe-card" onclick="openView(${i})">
+      <div class="card-bar bar-${r.cat}"></div>
+      <div class="card-body">
+        <span class="cat-badge badge-${r.cat}">${EMOJIS[r.cat]||'🍴'} ${LABELS[r.cat]||r.cat}</span>
+        <div class="card-title">${r.title}</div>
+        <div class="card-meta">${r.servings?`<span>👤 ${r.servings} pers.</span>`:''}${r.time?`<span>⏱ ${r.time}</span>`:''}</div>
+        <div class="card-ing">${r.ingredients.slice(0,4).join(' · ')}${r.ingredients.length>4?'…':''}</div>
+      </div>
+      <div class="card-footer" onclick="event.stopPropagation()">
+        <button class="btn btn-ghost btn-sm" onclick="openView(${i})">Voir</button>
+        <button class="btn btn-ghost btn-sm" onclick="openForm(${i})">✏️</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteR(${i})">🗑</button>
+      </div>
+    </div>`).join('');
+}
+function setCat(btn,cat){
+  activeCat=cat;
+  document.querySelectorAll('.filter-chip').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');renderGrid();
+}
+
+/* ─────────────────────────────────────
+   FORM
+───────────────────────────────────── */
+function openForm(idx){
+  closeAll(false);
+  const ed=idx!==undefined;
+  document.getElementById('formTitle').textContent=ed?'Modifier la recette':'Nouvelle recette';
+  document.getElementById('editIdx').value=ed?idx:'';
+  if(ed){
+    const r=recipes[idx];
+    document.getElementById('fTitle').value=r.title;
+    document.getElementById('fCat').value=r.cat;
+    document.getElementById('fServings').value=r.servings||4;
+    document.getElementById('fTime').value=r.time||'';
+    document.getElementById('fIngredients').value=r.ingredients.join('\n');
+    document.getElementById('fSteps').value=r.steps.join('\n');
+    document.getElementById('fNotes').value=r.notes||'';
+  } else {
+    ['fTitle','fTime','fNotes'].forEach(id=>document.getElementById(id).value='');
+    document.getElementById('fServings').value=4;
+    document.getElementById('fCat').value='dessert';
+    document.getElementById('fIngredients').value='';
+    document.getElementById('fSteps').value='';
+  }
+  document.getElementById('formBackdrop').classList.add('open');
+}
+function saveRecipe(){
+  const title=document.getElementById('fTitle').value.trim();
+  if(!title)return toast('⚠️ Titre obligatoire.','fail');
+  const ings=document.getElementById('fIngredients').value.split('\n').map(s=>s.trim()).filter(Boolean);
+  const steps=document.getElementById('fSteps').value.split('\n').map(s=>s.trim()).filter(Boolean);
+  if(!ings.length)return toast('⚠️ Ajoutez au moins un ingrédient.','fail');
+  if(!steps.length)return toast('⚠️ Ajoutez au moins une étape.','fail');
+  const r={title,cat:document.getElementById('fCat').value,
+    servings:parseInt(document.getElementById('fServings').value)||4,
+    time:document.getElementById('fTime').value.trim(),
+    ingredients:ings,steps,notes:document.getElementById('fNotes').value.trim()};
+  const idx=document.getElementById('editIdx').value;
+  if(idx!=='')recipes[parseInt(idx)]=r;else recipes.push(r);
+  persist();closeAll();renderGrid();
+  toast('✅ Recette sauvegardée !','ok');
+  autoSync();
+}
+
+/* ─────────────────────────────────────
+   VIEW + SCALER
+───────────────────────────────────── */
+function openView(i){
+  closeAll(false);
+  const r=recipes[i];
+  document.getElementById('viewTitle').textContent=r.title;
+  document.getElementById('viewMeta').textContent=[LABELS[r.cat],r.time?'⏱ '+r.time:''].filter(Boolean).join(' · ');
+  document.getElementById('btnEditView').onclick=()=>{closeAll(false);openForm(i);};
+  document.getElementById('btnExportOne').onclick=()=>exportOne(i);
+  document.getElementById('btnShareReddit').onclick=()=>shareReddit(i);
+  renderViewBody(r,r.servings||4,r.servings||4);
+  document.getElementById('viewBackdrop').classList.add('open');
+}
+function renderViewBody(r,base,cur){
+  const ratio=cur/(base||1);
+  function scale(raw){
+    return raw.replace(/(\d+[\d.,]*)/g,(_,n)=>{
+      const v=parseFloat(n.replace(',','.'))*ratio;
+      if(isNaN(v))return n;
+      const x=Math.round(v*10)/10;
+      return(x%1===0?x:x.toFixed(1).replace('.',',')).toString();
+    });
+  }
+  const ings=r.ingredients.map(g=>`<div class="ing-item"><div class="ing-dot"></div><span>${scale(g)}</span></div>`).join('');
+  const steps=r.steps.map((s,i)=>`<li class="step-item"><span class="step-num">${i+1}</span><span>${s}</span></li>`).join('');
+  document.getElementById('viewBody').innerHTML=`
+    <span class="cat-badge badge-${r.cat}" style="margin-bottom:12px;display:inline-block">${EMOJIS[r.cat]||'🍴'} ${LABELS[r.cat]||r.cat}</span>
+    <div class="serv-ctrl">
+      <label>Portions :</label>
+      <button class="serv-btn" id="sDec">−</button>
+      <span class="serv-val">${cur}</span>
+      <button class="serv-btn" id="sInc">＋</button>
+      <span class="serv-lbl">personne${cur>1?'s':''}</span>
+    </div>
+    <div class="v-section"><h3>Ingrédients</h3><div class="ing-grid">${ings}</div></div>
+    <div class="v-section"><h3>Préparation</h3><ol class="steps-list">${steps}</ol></div>
+    ${r.notes?`<div class="v-section"><h3>Notes &amp; astuces</h3><div class="notes-box">${r.notes}</div></div>`:''}
+  `;
+  document.getElementById('sDec').onclick=()=>{if(cur>1)renderViewBody(r,base,cur-1);};
+  document.getElementById('sInc').onclick=()=>renderViewBody(r,base,cur+1);
+}
+
+/* ─────────────────────────────────────
+   DELETE
+───────────────────────────────────── */
+function deleteR(i){
+  if(!confirm(`Supprimer « ${recipes[i].title} » ?`))return;
+  recipes.splice(i,1);persist();renderGrid();
+  toast('🗑 Recette supprimée.','');autoSync();
+}
+
+/* ─────────────────────────────────────
+   MARKDOWN
+───────────────────────────────────── */
+function toMD(r){
+  const lines=['# '+r.title,'',
+    `**Catégorie :** ${LABELS[r.cat]||r.cat}  `,
+    `**Portions :** ${r.servings||'?'}  `,
+    r.time?`**Durée :** ${r.time}  `:null,'',
+    '## Ingrédients','',
+    ...r.ingredients.map(g=>'- '+g),'',
+    '## Préparation','',
+    ...r.steps.map((s,i)=>`${i+1}. ${s}`)
+  ].filter(l=>l!==null);
+  if(r.notes)lines.push('','## Notes','',r.notes);
+  return lines.join('\n');
+}
+function fromMD(md){
+  const r={cat:'autre',servings:4,ingredients:[],steps:[],notes:''};
+  let sec='',noteLines=[];
+  for(const raw of md.split('\n')){
+    const l=raw.trim();
+    if(l.startsWith('# ')){r.title=l.slice(2).trim();continue;}
+    if(l.startsWith('## ')){
+      const s=l.slice(3).toLowerCase();
+      sec=s.includes('ingr')?'ing':s.includes('prép')||s.includes('prep')?'steps':s.includes('note')?'notes':'';
+      continue;
+    }
+    if(l.startsWith('**Catégorie')){
+      const m=l.match(/:\s*(.+?)\s*\*{0,2}\s*$/);
+      if(m){const v=m[1].toLowerCase();r.cat=Object.keys(LABELS).find(k=>v.includes(LABELS[k].toLowerCase().slice(0,4)))||'autre';}
+      continue;
+    }
+    if(l.startsWith('**Portions')){const m=l.match(/:\s*(\d+)/);if(m)r.servings=parseInt(m[1]);continue;}
+    if(l.startsWith('**Durée')){const m=l.match(/:\s*(.+?)\s*\*{0,2}\s*$/);if(m)r.time=m[1];continue;}
+    if(sec==='ing'&&l.startsWith('- ')){r.ingredients.push(l.slice(2));continue;}
+    if(sec==='steps'&&/^\d+\.\s/.test(l)){r.steps.push(l.replace(/^\d+\.\s+/,''));continue;}
+    if(sec==='notes'&&l)noteLines.push(l);
+  }
+  r.notes=noteLines.join('\n');
+  return r.title?r:null;
+}
+function exportOne(i){
+  const r=recipes[i];
+  dl(toMD(r),slugify(r.title)+'.md');
+  toast('⬇️ Recette exportée !','ok');
+}
+function exportAll(){
+  if(!recipes.length)return toast('Aucune recette.','fail');
+  dl(recipes.map(r=>toMD(r)).join('\n\n---\n\n'),'mon-carnet-recettes.md');
+  toast(`⬇️ ${recipes.length} recettes exportées !`,'ok');
+}
+function importMD(e){
+  const files=Array.from(e.target.files);if(!files.length)return;
+  let added=0,idx=0;
+  const next=()=>{
+    if(idx>=files.length){persist();renderGrid();closeAll();toast(`✅ ${added} recette${added>1?'s':''} importée${added>1?'s':''}!`,'ok');return;}
+    const reader=new FileReader();
+    reader.onload=ev=>{
+      ev.target.result.split(/\n---\n/).forEach(b=>{const r=fromMD(b.trim());if(r){recipes.push(r);added++;}});
+      idx++;next();
+    };
+    reader.readAsText(files[idx]);
+  };
+  next();e.target.value='';
+}
+function resetAll(){
+  if(!confirm('Vider tout le carnet ? Irréversible.'))return;
+  recipes=[];persist();renderGrid();closeAll();toast('🗑 Carnet vidé.','');
+}
+
+/* ─────────────────────────────────────
+   REDDIT SHARE
+───────────────────────────────────── */
+function shareReddit(i){
+  const r=recipes[i];
+  const sub=CAT_REDDIT[r.cat]||'recipes';
+  const title=encodeURIComponent(`[Recette] ${r.title}`);
+  const body=encodeURIComponent(toMD(r));
+  window.open(`https://www.reddit.com/r/${sub}/submit?selftext=true&title=${title}&text=${body}`,'_blank');
+}
+function openReddit(sub,query){
+  window.open(`https://www.reddit.com/r/${sub}/${query}`,'_blank');
+}
+
+/* ─────────────────────────────────────
+   GITHUB GIST SYNC + DIFF
+───────────────────────────────────── */
+function getToken(){return localStorage.getItem(SK_TOKEN)||'';}
+function getGistId(){return localStorage.getItem(SK_GIST)||'';}
+
+function openGist(){
+  closeAll(false);
+  document.getElementById('gistTokenInput').value=getToken()?'••••••••••••••••••••':'';
+  updateGistUI();
+  document.getElementById('gistBackdrop').classList.add('open');
+}
+function updateGistUI(){
+  const token=getToken(),gistId=getGistId();
+  const dot=document.getElementById('syncDot');
+  const lbl=document.getElementById('syncLabel');
+  const status=document.getElementById('gistStatus');
+  const conn=document.getElementById('gistConnectedSection');
+  if(token&&gistId){
+    dot.className='sync-dot connected';lbl.textContent='Gist connecté';
+    status.className='gist-status ok';status.textContent='✅ Connecté — Gist ID : '+gistId;
+    conn.style.display='block';
+  } else {
+    dot.className='sync-dot';lbl.textContent='Sync Gist';
+    status.className='gist-status';status.textContent='';
+    conn.style.display='none';
+  }
+}
+async function connectGist(){
+  const inp=document.getElementById('gistTokenInput');
+  const raw=inp.value.trim();
+  const token=raw.startsWith('•')?getToken():raw;
+  if(!token)return setGistStatus('⚠️ Collez votre token GitHub.','err');
+  setGistStatus('⏳ Connexion…','');
+  try{
+    const res=await fetch('https://api.github.com/gists',{headers:{'Authorization':'token '+token,'Accept':'application/vnd.github+json'}});
+    if(!res.ok)throw new Error('Token invalide ('+res.status+')');
+    const gists=await res.json();
+    const existing=gists.find(g=>g.files&&g.files[GIST_FILE]);
+    if(existing){
+      localStorage.setItem(SK_TOKEN,token);
+      localStorage.setItem(SK_GIST,existing.id);
+      setGistStatus('✅ Gist existant trouvé ! Vérification des différences…','ok');
+      await pullAndDiff(true);
+    } else {
+      const cr=await fetch('https://api.github.com/gists',{method:'POST',
+        headers:{'Authorization':'token '+token,'Content-Type':'application/json','Accept':'application/vnd.github+json'},
+        body:JSON.stringify({description:'Mon Carnet de Recettes',public:false,files:{[GIST_FILE]:{content:JSON.stringify(recipes,null,2)}}})});
+      if(!cr.ok)throw new Error('Impossible de créer le Gist ('+cr.status+')');
+      const ng=await cr.json();
+      localStorage.setItem(SK_TOKEN,token);localStorage.setItem(SK_GIST,ng.id);
+      setGistStatus('✅ Nouveau Gist créé et synchronisé !','ok');
+    }
+    updateGistUI();
+  }catch(e){setGistStatus('❌ Erreur : '+e.message,'err');}
+}
+async function pushToGist(){
+  const token=getToken(),gistId=getGistId();
+  if(!token||!gistId)return toast('Configurez le Gist d\'abord.','fail');
+  setSyncDot('syncing');
+  try{
+    const res=await fetch(`https://api.github.com/gists/${gistId}`,{method:'PATCH',
+      headers:{'Authorization':'token '+token,'Content-Type':'application/json','Accept':'application/vnd.github+json'},
+      body:JSON.stringify({files:{[GIST_FILE]:{content:JSON.stringify(recipes,null,2)}}})});
+    if(!res.ok)throw new Error(res.status);
+    setSyncDot('connected');toast('☁️ Carnet envoyé sur Gist !','ok');
+  }catch(e){setSyncDot('error');toast('❌ Erreur : '+e.message,'fail');}
+}
+
+/* Pull + compare, show diff if needed */
+async function pullAndDiff(silent=false){
+  const token=getToken(),gistId=getGistId();
+  if(!token||!gistId){if(!silent)toast('Configurez le Gist d\'abord.','fail');return;}
+  setSyncDot('syncing');
+  try{
+    const res=await fetch(`https://api.github.com/gists/${gistId}`,{headers:{'Authorization':'token '+token,'Accept':'application/vnd.github+json'}});
+    if(!res.ok)throw new Error(res.status);
+    const data=await res.json();
+    const content=data.files[GIST_FILE]?.content;
+    if(!content)throw new Error('Fichier introuvable dans le Gist.');
+    const gistRecipes=JSON.parse(content);
+    setSyncDot('connected');
+
+    // Compare
+    const diff=computeDiff(recipes,gistRecipes);
+    if(diff.hasConflict||diff.onlyLocal.length>0||diff.onlyGist.length>0){
+      showDiff(diff,recipes,gistRecipes);
+    } else {
+      // identical
+      if(!silent)toast('✅ Carnet déjà à jour !','ok');
+      else setGistStatus('✅ Carnet déjà à jour avec le Gist !','ok');
+    }
+  }catch(e){setSyncDot('error');toast('❌ Erreur : '+e.message,'fail');}
+}
+
+function computeDiff(local,gist){
+  const localTitles=new Set(local.map(r=>r.title.trim().toLowerCase()));
+  const gistTitles =new Set(gist.map(r=>r.title.trim().toLowerCase()));
+  const onlyLocal  =local.filter(r=>!gistTitles.has(r.title.trim().toLowerCase()));
+  const onlyGist   =gist.filter(r=>!localTitles.has(r.title.trim().toLowerCase()));
+  // Conflict = same title but different content
+  const conflicts  =local.filter(r=>{
+    const gl=gist.find(g=>g.title.trim().toLowerCase()===r.title.trim().toLowerCase());
+    return gl&&JSON.stringify(r)!==JSON.stringify(gl);
+  });
+  return{onlyLocal,onlyGist,conflicts,hasConflict:conflicts.length>0};
+}
+
+function showDiff(diff,localArr,gistArr){
+  _diffPending={local:localArr,gist:gistArr};
+  // Summary
+  const parts=[];
+  if(diff.onlyLocal.length)parts.push(`<strong>${diff.onlyLocal.length}</strong> recette${diff.onlyLocal.length>1?'s':''} uniquement en local`);
+  if(diff.onlyGist.length) parts.push(`<strong>${diff.onlyGist.length}</strong> recette${diff.onlyGist.length>1?'s':''} uniquement sur le Gist`);
+  if(diff.conflicts.length)parts.push(`<strong>${diff.conflicts.length}</strong> recette${diff.conflicts.length>1?'s':''} modifiée${diff.conflicts.length>1?'s':''} des deux côtés`);
+  document.getElementById('diffSummary').innerHTML='🔍 Différences détectées : '+parts.join(' · ')+'.';
+  document.getElementById('diffLocalCount').textContent=localArr.length+' recette'+(localArr.length>1?'s':'');
+  document.getElementById('diffGistCount').textContent=gistArr.length+' recette'+(gistArr.length>1?'s':'');
+
+  // Local list
+  document.getElementById('diffLocalList').innerHTML=localArr.map(r=>{
+    const inGist=gistArr.find(g=>g.title.trim().toLowerCase()===r.title.trim().toLowerCase());
+    const isConflict=inGist&&JSON.stringify(r)!==JSON.stringify(inGist);
+    const cls=isConflict?'conflict':'only-local';
+    const tag=isConflict?'<span class="diff-tag tag-conflict">modifié</span>':'<span class="diff-tag tag-local">local</span>';
+    return`<div class="diff-item ${cls}">${tag}<span>${r.title}</span></div>`;
+  }).join('');
+
+  // Gist list
+  document.getElementById('diffGistList').innerHTML=gistArr.map(r=>{
+    const inLocal=localArr.find(l=>l.title.trim().toLowerCase()===r.title.trim().toLowerCase());
+    const isConflict=inLocal&&JSON.stringify(r)!==JSON.stringify(inLocal);
+    const cls=isConflict?'conflict':inLocal?'both':'only-gist';
+    const tag=isConflict?'<span class="diff-tag tag-conflict">modifié</span>':inLocal?'<span class="diff-tag tag-both">commun</span>':'<span class="diff-tag tag-gist">Gist</span>';
+    return`<div class="diff-item ${cls}">${tag}<span>${r.title}</span></div>`;
+  }).join('');
+
+  closeAll(false);
+  document.getElementById('diffBackdrop').classList.add('open');
+}
+
+async function resolveDiff(choice){
+  if(!_diffPending)return;
+  const{local,gist}=_diffPending;
+  let resolved;
+  if(choice==='local'){
+    resolved=local;
+    toast('📱 Carnet local conservé.','ok');
+  } else if(choice==='gist'){
+    resolved=gist;
+    toast('☁️ Version Gist restaurée.','ok');
+  } else {
+    // Merge: union by title, local wins on conflict
+    const map=new Map();
+    gist.forEach(r=>map.set(r.title.trim().toLowerCase(),r));
+    local.forEach(r=>map.set(r.title.trim().toLowerCase(),r));
+    resolved=Array.from(map.values());
+    toast('🔀 Fusion effectuée — '+resolved.length+' recettes.','ok');
+  }
+  recipes=resolved;
+  persist();renderGrid();
+  _diffPending=null;
+  closeAll();
+  // Push resolved to Gist
+  await pushToGist();
+}
+
+function autoSync(){if(getToken()&&getGistId())pushToGist();}
+function setSyncDot(state){document.getElementById('syncDot').className='sync-dot '+state;}
+function setGistStatus(msg,cls){
+  const el=document.getElementById('gistStatus');
+  el.textContent=msg;el.className='gist-status '+(cls||'');
+  el.style.display=msg?'block':'none';
+}
+async function disconnectGist(){
+  if(!confirm('Déconnecter ce carnet du Gist ?'))return;
+  localStorage.removeItem(SK_TOKEN);localStorage.removeItem(SK_GIST);
+  updateGistUI();setGistStatus('Déconnecté.','');toast('Gist déconnecté.','');
+}
+
+/* ─────────────────────────────────────
+   MODALS
+───────────────────────────────────── */
+function openIO(){closeAll(false);document.getElementById('ioBackdrop').classList.add('open');}
+function closeAll(){document.querySelectorAll('.backdrop').forEach(b=>b.classList.remove('open'));}
+document.querySelectorAll('.backdrop').forEach(b=>b.addEventListener('click',e=>{if(e.target===b)closeAll();}));
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeAll();});
+
+/* ─────────────────────────────────────
+   TOAST
+───────────────────────────────────── */
+let _tt;
+function toast(msg,type=''){
+  const el=document.getElementById('toast');
+  el.textContent=msg;el.className='toast show '+type;
+  clearTimeout(_tt);_tt=setTimeout(()=>{el.className='toast';},3000);
+}
+
+/* ─────────────────────────────────────
+   UTILS
+───────────────────────────────────── */
+function dl(text,filename){
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([text],{type:'text/markdown'}));
+  a.download=filename;a.click();
+}
+function slugify(s){
+  return s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
+}
+
+/* ─────────────────────────────────────
+   INIT
+───────────────────────────────────── */
+initTheme();load();renderGrid();updateGistUI();
+</script>
+</body>
+</html>
